@@ -1,0 +1,22 @@
+{
+  "name": "domino-train",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "main": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "just-cartesian-product": "^4.2.0",
+    "powerset-stream": "^0.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "readable-stream": "3.6.2"
+    }
+  }
+}
