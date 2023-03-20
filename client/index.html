@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Domino</title>
+</head>
+<body>
+  <div id="domino-display"></div>
+  <script type="importmap">
+  {
+    "imports": {
+      "index": "./index.js",
+      "@arrow-js/core": "https://cdn.jsdelivr.net/npm/@arrow-js/core@1.0.0-alpha.9/dist/index.mjs"
+    },
+    "scopes": {
+      "https://cdn.jsdelivr.net/": {}
+    }
+  }
+  </script>
+  <!-- ES Module Shims: Import maps polyfill for modules browsers without import maps support (Safari 16.3) -->
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.5.1/dist/es-module-shims.js" crossorigin="anonymous"></script>
+  <script type="module">
+    import main from 'index';
+    main();
+  </script>
+</body>
