@@ -1,28 +1,33 @@
 import { reactive, html } from '@arrow-js/core'
 import ArrowTags from 'arrow-tags';
 
-const toLink = (greeting, object) => {
-  const { A } = ArrowTags;
-  const aProps = {
-    id: 'id', href: (({url}) => url)
-  };
-  const space = 'of how to say hello to the'
-  return A`
-    ${greeting} ${space} ${object}
-  `(aProps);
+const and = ([...v], end='') => {
+  if (v.length < 3) return v.join(' and ');
+  const last = v.splice(v.length-1, 1) + end;
+  return [...v.map(x => `${x}, `), 'and ' + last]; 
 }
 
-const toCore = (child) => {
+const toLink = (text) => {
+  const { A } = ArrowTags;
+  const aProps = {
+    id: 'id', href: (({url, search}) => url+search)
+  };
+  return A`${text}`(aProps);
+}
+
+const toCore = (link, child) => {
   const props = {
     style: `
       grid-row: 2;
+      padding: 1rem;
       font-size: 150%;
       max-width: 300px;
       font-family: sans-serif;
     `
   };
+  const hi = 'Attention:';
   const { Div } = ArrowTags;
-  return Div`→ ${child} ←`(props);
+  return Div`→ ${hi} ${child} ${link} ←`(props);
 }
 
 const toRoot = (child) => {
@@ -32,7 +37,7 @@ const toRoot = (child) => {
       display: grid;
       align-content: center;
       justify-content: center;
-      grid-template-rows: 1fr auto 1fr;
+      grid-template-rows: 1fr auto 2fr;
     `
   };
   const { Div } = ArrowTags;
@@ -40,19 +45,24 @@ const toRoot = (child) => {
 }
 
 const toDefault = () => ({
-  url: "https://www.google.com", 
-  name: 'Entire World!',
-  hello: 'Hello'
+  message: 'search "hello world"',
+  url: "https://www.bing.com", 
+  search: "/search?q=hello+world",
+  names: ['X', 'Y', 'Z']
 })
 
 const main = () => {
   const id = 'domino-display';
   const data = reactive(toDefault());
-  const { render, Em, _ } = ArrowTags;
-  const hi = _`${d=>d.hello}, this is a test`;
-  const name = Em`${d=>d.name}`;
-  const link = toLink(hi, name);
-  const core = toCore(link);
+  const { render, Ul, Li, _ } = ArrowTags;
+  const hi = _`${d=>d.message}`;
+  const names = Ul`${d=>{
+    return and(d.names).map((str,i) => {
+      return Li(str)({html, key: i});
+    });
+  }}`;
+  const link = toLink(hi);
+  const core = toCore(link, names);
   const root = toRoot(core);
   render(id, html, data, root);
 }
