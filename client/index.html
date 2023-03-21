@@ -6,6 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
   <title>Domino</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+    }
+    #domino-display {
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
   <div id="domino-display"></div>
@@ -13,6 +22,7 @@
   {
     "imports": {
       "index": "./index.js",
+      "arrow-tags": "https://cdn.jsdelivr.net/npm/arrow-tags@1.0.0-beta.3/dist/index.mjs",
       "@arrow-js/core": "https://cdn.jsdelivr.net/npm/@arrow-js/core@1.0.0-alpha.9/dist/index.mjs"
     },
     "scopes": {
