@@ -359,14 +359,8 @@ const readBlocks = (blocks, labels, ends=[]) => {
 }
 
 const toInfo = (edges, paths) => {
-  const e0 = paths[0][0];
   const missing = edges.filter(e => {
-    for (const path of paths) {
-      if (matchLink(path, e0) && matchLink(path, e)) {
-        return false;
-      }
-    }
-    return true;
+    return !matchLink(paths[0], e);
   });
   const lost = missing.map(e => {
     const face = () => `[${e.join(':')}]`;
@@ -411,12 +405,16 @@ const toMethylcyclopropane = (stat, d) => {
   const ends = toEnds(stat, paths);
 
   const Ba = ['', B][+(A !== '')];
+  const Bb = ['', B][+(A !== '□')];
+  const Dd = ['', D][+(A !== '□')];
   const labels = [
     [A, [8]],
     [Ba, [9]],
-    [B, [10, 5]],
+    [B, [10]],
+    [Bb, [5]],
     [C, [6, 7, 11]], 
-    [D, [1, 2, 3]]
+    [Dd, [1]],
+    [D, [2, 3]]
   ];
   const pre = toPrefix(stat, faces, blocks);
   const vals = readBlocks(blocks, labels, ends);
@@ -485,7 +483,7 @@ const toRest = (edges, i, j) => {
   return edges.filter((_, k) => k!==i && k!==j);
 }
 
-const linkChains = (stat, setups, edges, max=4) => {
+const linkChainsUnsorted = (stat, setups, edges, max=4) => {
   if (max >= 4) {
     const train4 = setups.reduce((o, [i, j]) => {
       const [one, two] = toRest(edges, i, j);
@@ -522,33 +520,13 @@ const linkChains = (stat, setups, edges, max=4) => {
   }, []);
 }
 
-const toPaths = (station, edges) => {
-  const joiner = joinChains(station);
-  const adder = addChain(station);
-  const chains = []
-  const mid_edges = edges.reduce((o, e) => {
-    const edge = matchNode(orderEdge(e), [station]);
-    if (edge === undefined) return [...o, e];
-    chains.push([edge]);
-    return o;
-  }, []);
-  mid_edges.forEach((e) => {
-    for (const ch1 of chains) {
-      // Edge joins two chains
-      for (const ch2 of chains) {
-        if (joiner(ch1, ch2, e)) return;
-      }
-      // Edge added to chain
-      if (adder(ch1, e)) return;
-    }
-    chains.push([[...e]]);
-  });
-  const out = chains.filter(chain => {
-    const { start } = toStartStop(chain);
-    if (start !== station) return false;
-    return true;
-  });
-  return out.sort((a,b) => b.length - a.length);
+const sortChains = (a, b) => {
+  const sum = (p) => p.reduce((o, [x,y]) => o+x+y, 0);
+  return sum(b) - sum(a);
+}
+
+const linkChains = (...args) => {
+  return linkChainsUnsorted(...args).sort(sortChains);
 }
 
 const flip = (prior, edge) => {
@@ -572,7 +550,7 @@ const toEnds = (stat, paths) => {
       return edge[1];
     }
     return edge[0];
-  }).sort((a,b) => b-a);
+  });
 }
 
 const toCyclobutane = (stat, d) => {
@@ -616,18 +594,18 @@ const toIsopentane = (stat, d) => {
     const err = ['x₁', 'x₂', 'x₃', 'x₄', 'x₅'];
     if (degrees.get(stat) === 2) {
       return {
-        2: ['', ...nums, '□', '□']
+        2: ['', ...nums, '□', '']
       }[nums.length] || err;
     }
     if (degrees.get(nums[1]) === 2) {
       return {
-        3: [...nums, '□', '□'],
+        3: [...nums, '□', ''],
         2: ['□', ...nums.reverse(), '', '']
       }[nums.length] || err;
     }
     return {
       3: ['□', ...nums.reverse(), ''],
-      2: ['', ...nums, '□', '□']
+      2: ['', ...nums, '□', '']
     }[nums.length] || err;
   })(readPath(stat, paths[0]));
   const [A, B, C, D, E] = faces; 
@@ -659,18 +637,19 @@ const toNeopentane = (stat, d) => {
   });
   const paths = linkChains(stat, setups, edges, 2);
   const faces = (nums => {
-    const err = ['x₁', 'x₂', 'x₃', 'x₄', 'x₅'];
+    const err = ['x₁', 'x₂', 'x₃'];
     return {
-      2: [...nums, '□', '□', '□'],
-      1: ['□', ...nums, '', '', '']
+      2: [...nums, '□'],
+      1: ['□', ...nums, '']
     }[nums.length] || err;
   })(readPath(stat, paths[0]));
-  const [A, B, C, D, E] = faces;
+  const [A, B, C] = faces;
   const ends = toEnds(stat, paths);
 
+  const Bc = ['', B][+(C !== '')];
   const labels = [
-    [A, [0]], [B, [4,5,6,7]],
-    [C, [9]], [D, [2]], [E, [11]]
+    [A, [0]], [B, [4]], [Bc, [5]],
+    [C, [9]], ['', [2, 6, 7, 11]]
   ]
   const pre = toPrefix(stat, faces, blocks);
   const vals = readBlocks(blocks, labels, ends);
@@ -728,14 +707,15 @@ const toPropane = (stat, d) => {
     const err = ['x₁', 'x₂', 'x₃'];
     return {
       2: [...nums, '□'],
-      1: ['□', ...nums, '□']
+      1: ['', ...nums, '□']
     }[nums.length] || err;
   })(readPath(stat, paths[0]));
   const [A, B, C] = faces;
   const ends = toEnds(stat, paths);
 
+  const Ba = ['', B][+(A!== '')];
   const labels = [
-    [A, [0]], [B, [4, 8]],
+    [A, [0]], [Ba, [4]], [B, [8]],
     [C, [9]], ['', [2, 3, 7, 11]]
   ];
   const pre = toPrefix(stat, faces, blocks);
